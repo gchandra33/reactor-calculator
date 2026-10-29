@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jacketed Reactor Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Jacketed Reactor Calculator</h1>
+        
+        <!-- Tabs -->
+        <div class="tab">
+            <button class="tablinks active" onclick="openTab(event, 'InputParams')">Configuration & Inputs</button>
+            <button class="tablinks" onclick="openTab(event, 'Results')" id="resultsTabBtn">Calculated Results</button>
+            <button class="tablinks" onclick="openTab(event, 'HistoryTab'); loadHistory();">Design History</button>
+        </div>
+
+        <form id="calculatorForm">
+            <!-- Unified Input Tab -->
+            <div id="InputParams" class="tabcontent" style="display: block;">
+                
+                <h3>1. Mechanical & Physical Configurations</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Material of Construction:</label>
+                        <select name="material">
+                            <option value="ss304">SS 304</option>
+                            <option value="ss316">SS 316</option>
+                            <option value="carbon_steel">Carbon Steel</option>
+                            <option value="glass_lined">Glass Lined</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Type of Top & Bottom Ends:</label>
+                        <select name="end_type">
+                            <option value="dish">Torispherical (Dish)</option>
+                            <option value="hemispherical">Hemispherical</option>
+                            <option value="conical">Conical</option>
+                            <option value="flat">Flat</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Heating/Cooling Type:</label>
+                        <select name="heating_type">
+                            <option value="jacket">Conventional Jacket</option>
+                            <option value="limpet">Limpet Coil</option>
+                            <option value="none">Unjacketed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Internal Diameter (m):</label>
+                        <input type="number" name="diameter" step="0.1" value="1.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Straight Shell Height (m):</label>
+                        <input type="number" name="height" step="0.1" value="2.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Operating Pressure (bar):</label>
+                        <input type="number" name="pressure" step="0.1" value="3.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Liquid Level in Straight Shell (m):</label>
+                        <input type="number" name="liquid_level" step="0.1" value="1.5" required>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>2. Inlets, Outlets & Nozzles</h3>
+                <div class="checkbox-group">
+                    <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+                        <label><input type="checkbox" name="nozzles" value="Feed Inlet" checked> Feed Inlet</label>
+                        <label><input type="checkbox" name="nozzles" value="Vapor Outlet"> Vapor Outlet</label>
+                        <label><input type="checkbox" name="nozzles" value="Agitator Nozzle" checked> Agitator Nozzle</label>
+                        <label><input type="checkbox" name="nozzles" value="Bottom Drain" checked> Bottom Drain</label>
+                        <label><input type="checkbox" name="nozzles" value="Jacket Utility In" checked> Utility Inlet</label>
+                        <label><input type="checkbox" name="nozzles" value="Jacket Utility Out" checked> Utility Outlet</label>
+                        <label><input type="checkbox" name="nozzles" value="Manhole"> Manhole / Sight Glass</label>
+                        <label><input type="checkbox" name="nozzles" value="Pressure Relief"> Bursting Disc / PSV</label>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>3. Kinetic Parameters</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Reaction Rate (-rA):</label>
+                        <input type="number" name="reaction_rate" step="0.1" value="12.5" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Flow Rate (m3/hr):</label>
+                        <input type="number" name="flow_rate" step="0.1" value="1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Required Conversion (0 to 1):</label>
+                        <input type="number" name="conversion" step="0.01" value="0.95" required>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>4. Agitator & Fluid Properties</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fluid Density (kg/m³):</label>
+                        <input type="number" name="fluid_density" step="1" value="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Agitator Speed (RPM):</label>
+                        <input type="number" name="rpm" step="1" value="120" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Impeller Type:</label>
+                        <select name="impeller_type">
+                            <option value="pitched_blade">Pitched Blade Turbine</option>
+                            <option value="rushton">Rushton Turbine</option>
+                            <option value="anchor">Anchor (High Viscosity)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>5. Thermal & Batch Heating Parameters</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fluid Specific Heat (kJ/kg·K):</label>
+                        <input type="number" name="specific_heat" step="0.1" value="4.18" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Initial Temperature (°C):</label>
+                        <input type="number" name="temp_initial" step="1" value="25" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Temperature (°C):</label>
+                        <input type="number" name="temp_target" step="1" value="85" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Batch Time (Hours):</label>
+                        <input type="number" name="batch_time" step="0.1" value="2.0" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Ambient Room Temp (°C):</label>
+                        <input type="number" name="ambient_temp" step="1" value="25" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reactor Insulation:</label>
+                        <select name="insulation">
+                            <option value="insulated">Insulated (U ≈ 2 W/m²K)</option>
+                            <option value="uninsulated">Uninsulated (U ≈ 15 W/m²K)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Insulation 'k' (W/m·K):</label>
+                        <input type="number" name="k_insulation" step="0.01" value="0.04" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Safe Touch Target (°C):</label>
+                        <input type="number" name="safe_touch_temp" step="1" value="60" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Utility Type:</label>
+                        <select name="utility_type">
+                            <option value="liquid">Liquid (Water/Oil)</option>
+                            <option value="steam">Steam</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Utility Cp (If Liquid):</label>
+                        <input type="number" name="utility_cp" step="0.1" value="4.18">
+                    </div>
+                    <div class="form-group">
+                        <label>Utility &Delta;T (If Liquid):</label>
+                        <input type="number" name="utility_dt" step="1" value="10">
+                    </div>
+                    <div class="form-group">
+                        <label>Latent Heat (If Steam):</label>
+                        <input type="number" name="utility_latent" step="1" value="2100">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Utility Density (kg/m³):</label>
+                        <input type="number" name="utility_density" step="0.1" value="1000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Target Pipe Velocity (m/s):</label>
+                        <input type="number" name="utility_velocity" step="0.1" value="1.5" required>
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>6. Reflux Condenser Sizing</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Vapor Flow Rate (kg/hr):</label>
+                        <input type="number" name="vapor_flow" step="1" value="50">
+                    </div>
+                    <div class="form-group">
+                        <label>Vapor Latent Heat (kJ/kg):</label>
+                        <input type="number" name="vapor_latent" step="1" value="840">
+                    </div>
+                    <div class="form-group">
+                        <label>Vapor Boiling Temp (°C):</label>
+                        <input type="number" name="vapor_temp" step="1" value="78">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Cooling Water In (°C):</label>
+                        <input type="number" name="cw_in" step="1" value="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Cooling Water Out (°C):</label>
+                        <input type="number" name="cw_out" step="1" value="40">
+                    </div>
+                    <div class="form-group">
+                        <label>Condenser HTC, U (W/m²K):</label>
+                        <input type="number" name="u_cond" step="10" value="800">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tube Outer Diameter (mm):</label>
+                        <input type="number" name="tube_od_mm" step="0.01" value="19.05">
+                    </div>
+                    <div class="form-group">
+                        <label>Tube Length (m):</label>
+                        <input type="number" name="tube_length_m" step="0.1" value="2.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Shell Pressure (bar):</label>
+                        <input type="number" name="condenser_pressure" step="0.1" value="1.0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Condenser Shell Material:</label>
+                        <select name="condenser_material">
+                            <option value="carbon_steel">Carbon Steel</option>
+                            <option value="ss304">SS 304</option>
+                            <option value="ss316">SS 316</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Vapor Density (kg/m³):</label>
+                        <input type="number" name="vapor_density" step="0.1" value="2.5">
+                    </div>
+                    <div class="form-group">
+                        <label>Condensate Density (kg/m³):</label>
+                        <input type="number" name="condensate_density" step="1" value="800">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Vapor Velocity (m/s):</label>
+                        <input type="number" name="vapor_velocity" step="1" value="20">
+                    </div>
+                    <div class="form-group">
+                        <label>Target Liquid Velocity (m/s):</label>
+                        <input type="number" name="liquid_velocity" step="0.1" value="1.0">
+                    </div>
+                </div>
+
+                <hr style="border: 1px solid #ccc; margin: 20px 0;">
+
+                <h3>7. Economic Estimation (CAPEX)</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Reactor Fab Cost ($/kg):</label>
+                        <input type="number" name="cost_per_kg" step="0.1" value="12.0">
+                    </div>
+                    <div class="form-group">
+                        <label>Condenser Cost ($/m²):</label>
+                        <input type="number" name="cost_per_m2_condenser" step="10" value="400">
+                    </div>
+                    <div class="form-group">
+                        <label>Agitator/Motor Cost ($/kW):</label>
+                        <input type="number" name="cost_per_kw_agitator" step="10" value="600">
+                    </div>
+                    <div class="form-group">
+                        <label>Installation Factor:</label>
+                        <input type="number" name="installation_factor" step="0.1" value="1.8">
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Run Calculations</button>
+            </div>
+        </form>
+
+        <!-- Results Tab -->
+        <div id="Results" class="tabcontent">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>Design Output</h3>
+                <button id="downloadPdfBtn" class="submit-btn" style="width: auto; display: none; margin-top: 0; padding: 10px 15px; background-color: #17a2b8;">
+                    📥 Download PDF Report
+                </button>
+            </div>
+            <div id="loading" style="display: none;">Calculating...</div>
+            <div id="resultsContent">
+                <p>Submit the configuration to view results.</p>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="HistoryTab" class="tabcontent">
+            <h3>Saved Reactor Designs</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc; text-align: left;">
+                        <th style="padding: 10px;">Date & Time</th>
+                        <th style="padding: 10px;">Material</th>
+                        <th style="padding: 10px;">Total Vol (m³)</th>
+                        <th style="padding: 10px;">Est. CAPEX ($)</th>
+                        <th style="padding: 10px;">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="historyTableBody">
+                    <tr><td colspan="5" style="padding: 10px; text-align: center;">Loading history...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

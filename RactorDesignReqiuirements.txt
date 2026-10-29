@@ -1,0 +1,13 @@
+Want directory structure and html, js, css and python code for calculator for jacketed reactor. This calculator should be able to
+
+select material of construction
+selection of jacketed or otherwise
+Mechanical design the reactor based on choice of reactor along with weight of empty reactor 
+Kinetic design reactor
+If reactor requires heating/ cooling the add jacket or limpet coil choose the best
+Hydraulics of the jacket for heat transfer coefficient and determine the Heat transfer coefficient
+determine the surface are for heat transfer to surrounding
+determine the heat transfer area
+determine total volume &  heat transfer area based on when partial volume is filled  
+I should be able to select inlets and outlets depending on requirements 
+
